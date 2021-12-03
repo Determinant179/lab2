@@ -49,6 +49,7 @@ int main()
         sleep(1);
     }
     semop(fd_sem, &waiting, 1);
+     printf("\nCLIENT 1:\n Waiting message from server...\n");
 
     // Получение РОП
     int fd_shm = -1;
