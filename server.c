@@ -74,7 +74,7 @@ int main()
 
     char answer2[2048];
     strcpy(answer2, addr);
-    printf("\nSERVER:\nMessage from client 2: \"%s\"\n", answer2);
+    printf("\nSERVER:\nMessage from client 2:\n%s\n", answer2);
 
     shmdt(addr);
     shmctl(fd_shm, IPC_RMID, 0);
