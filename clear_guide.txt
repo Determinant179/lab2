@@ -1,0 +1,5 @@
+1. ipcs -m
+2. ipcrm -m <PID>
+3. ipcs -s
+4. ipcrm -s <PID>
+

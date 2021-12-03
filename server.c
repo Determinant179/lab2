@@ -23,10 +23,14 @@
     семафорами набора.
 */
 
-struct sembuf unclock_first_client = {0, 1, 0};
-struct sembuf wait_first_client = {0, -2, 0};
-struct sembuf unclock_second_client = {0, 3, 0};
-struct sembuf wait_second_client = {0, -4, 0};
+// struct sembuf unclock_first_client = {0, 1, 0};
+// struct sembuf wait_first_client = {0, -2, 0};
+// struct sembuf unclock_second_client = {0, 3, 0};
+// struct sembuf wait_second_client = {0, -4, 0};
+
+struct sembuf
+    sem_unlock[] = {{0, 1, 0}, {0, 3, 0} /*,{0,5,0}*/},
+    sem_wait[] = {{0, -2, 0}, {0, -4, 0} /*,{0,-6,0}*/};
 
 int main()
 {
@@ -57,9 +61,9 @@ int main()
     }
 
     // Разблокирование 1-ого клиента
-    semop(fd_sem, &unclock_first_client, 1);
+    semop(fd_sem, &sem_unlock[0], 1);
     // Ожидание 1-ого клиента
-    semop(fd_sem, &wait_first_client, 1);
+    semop(fd_sem, &sem_wait[0], 1);
     printf("\nSERVER:\nWaiting message from client 1...\n");
 
     char answer1[2048];
@@ -119,11 +123,10 @@ int main()
 
     printf("%s", output);
 
-
     // Разблокирование 2-ого клиента
-    semop(fd_sem, &unclock_second_client, 1);
+    semop(fd_sem, &sem_unlock[1], 1);
     // Ожидание 2-ого клиента
-    semop(fd_sem, &wait_second_client, 1);
+    semop(fd_sem, &sem_wait[1], 1);
 
     char answer2[2048];
     strcpy(answer2, addr);
