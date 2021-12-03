@@ -60,10 +60,12 @@ int main()
     semop(fd_sem, &unclock_first_client, 1);
     // Ожидание 1-ого клиента
     semop(fd_sem, &wait_first_client, 1);
+    printf("\nSERVER:\nWaiting message from client 1...\n");
+
 
     char answer1[2048];
     strcpy(answer1, addr);
-    printf("\nSERVER:\n Message from client 1: \"%s\"\n", answer1);
+    printf("\nSERVER:\nMessage from client 1:\n%s\n", answer1);
 
     // Разблокирование 2-ого клиента
     semop(fd_sem, &unclock_second_client, 1);
@@ -72,7 +74,7 @@ int main()
 
     char answer2[2048];
     strcpy(answer2, addr);
-    printf("\nSERVER:\n Message from client 2: \"%s\"\n", answer2);
+    printf("\nSERVER:\nMessage from client 2: \"%s\"\n", answer2);
 
     shmdt(addr);
     shmctl(fd_shm, IPC_RMID, 0);

@@ -7,8 +7,8 @@
 
 /*
 КЛИЕНТ 1
-    Записать в разделяемую область памяти идентификаторы всех процессов, 
-    приоритет которых больше 25, а также время работы этих процессов. 
+    Записать в разделяемую область памяти идентификаторы всех процессов,
+    приоритет которых больше 25, а также время работы этих процессов.
     Распечатать ответ сервера.
 */
 
@@ -44,23 +44,27 @@ int main()
 
     // Получение семафоров
     int fd_sem = -1;
-    while (fd_sem == -1) {
-        fd_sem = semget(3, 0, 0);
+    while (fd_sem == -1)
+    {
+        fd_sem = semget(4, 0, 0);
         sleep(1);
     }
+
     semop(fd_sem, &waiting, 1);
-     printf("\nCLIENT 1:\n Waiting message from server...\n");
+
+    printf("\nCLIENT 1:\nWaiting message from server...\n");
 
     // Получение РОП
     int fd_shm = -1;
-    while (fd_shm == -1){
-        fd_shm = shmget(4, 0, 0);
+    while (fd_shm == -1)
+    {
+        fd_shm = shmget(3, 0, 0);
         sleep(1);
     }
 
     // Добавление РОП
-    char * addr = shmat(fd_shm, 0, 0);
-    if (addr == (char * ) -1)
+    char *addr = shmat(fd_shm, 0, 0);
+    if (addr == (char *)-1)
     {
         fprintf(stderr, "\nCLIENT 1:\nError while ShM adding\n");
     }
@@ -71,7 +75,6 @@ int main()
 
     semop(fd_sem, &notify, 1);
     shmdt(addr);
-
 
     return 0;
 }
