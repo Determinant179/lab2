@@ -29,8 +29,8 @@
 // struct sembuf wait_second_client = {0, -4, 0};
 
 struct sembuf
-    sem_unlock[] = {{0, 1, 0}, {0, 3, 0} /*,{0,5,0}*/},
-    sem_wait[] = {{0, -2, 0}, {0, -4, 0} /*,{0,-6,0}*/};
+    sem_unlock[] = {{0, 1, 0}, {0, -3, 0}, {0, 5, 0}},
+    sem_wait[] = {{0, -2, 0}, {0, 4, 0}, {0, -6, 0}};
 
 int main()
 {
@@ -137,12 +137,17 @@ int main()
         strcat(output, output_line);
     }
 
-    printf("%s\n", output);
+    // printf("%s\n", output);
+
+    strcpy(addr, output);
+
+    semop(fd_sem, &sem_wait[1], 1);
+    shmdt(addr);
 
     // Разблокирование 2-ого клиента
-    semop(fd_sem, &sem_unlock[1], 1);
+    semop(fd_sem, &sem_unlock[2], 1);
     // Ожидание 2-ого клиента
-    semop(fd_sem, &sem_wait[1], 1);
+    semop(fd_sem, &sem_wait[2], 1);
 
     char answer2[2048];
     strcpy(answer2, addr);

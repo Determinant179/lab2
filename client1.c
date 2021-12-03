@@ -12,8 +12,12 @@
     Распечатать ответ сервера.
 */
 
-struct sembuf waiting = {0, -1, 0};
-struct sembuf notify = {0, 2, 0};
+// struct sembuf waiting = {0, -1, 0};
+// struct sembuf notify = {0, 2, 0};
+
+struct sembuf
+    sem_unlock[] = {{0, -1, 0}, {0, 3, 0}},
+    sem_wait[] = {{0, 2, 0}, {0, -4, 0}};
 
 int main()
 {
@@ -50,7 +54,7 @@ int main()
         sleep(1);
     }
 
-    semop(fd_sem, &waiting, 1);
+    semop(fd_sem, &sem_unlock[0], 1);
 
     printf("\nCLIENT 1:\nWaiting message from server...\n");
 
@@ -73,8 +77,20 @@ int main()
 
     strcpy(addr, output);
 
-    semop(fd_sem, &notify, 1);
+    semop(fd_sem, &sem_wait[0], 1);
     shmdt(addr);
+
+    // Получение ответа от сервера
+
+    semop(fd_sem, &sem_unlock[1], 1);
+    semop(fd_sem, &sem_wait[1], 1);
+    char answer[2048];
+    strcpy(answer, addr);
+    printf("\nCLIENT 1:\nMessage from server:\n%s\n", answer);
+
+    shmdt(addr);
+    shmctl(fd_shm, IPC_RMID, 0);
+    semctl(fd_sem, 0, IPC_RMID);
 
     return 0;
 }

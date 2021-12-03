@@ -13,8 +13,8 @@
     семафорами набора.
 */
 
-struct sembuf waiting = {0, -3, 0};
-struct sembuf notify = {0, 4, 0};
+struct sembuf waiting = {0, -5, 0};
+struct sembuf notify = {0, 6, 0};
 
 int main()
 {
@@ -40,7 +40,7 @@ int main()
     char *addr = shmat(fd_shm, 0, 0);
     if (addr == (char *)-1)
     {
-        fprintf(stderr, "shared memory adding ERROR\n");
+        fprintf(stderr, "\nCLIENT 2:\nError while shared memory adding\n");
     }
 
     struct semid_ds semid_ds;
