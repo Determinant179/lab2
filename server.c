@@ -79,35 +79,37 @@ int main()
 
     char PIDs[PIDs_amount][16];
     int PIDs_id = 0;
-    int space_counter = 0;
+    int isPIDFound = 0;
 
     for (int i = 0; i < PIDs_amount; i++)
         strcpy(PIDs[i], "");
 
-    for (int i = 0; i < strlen(answer1); i++)
+    for (int i = 0; i < strlen(answer1) - 1; i++)
     {
-        if (answer1[i] == ' ')
+        if (answer1[i] != ' ' && isPIDFound == 0)
         {
-            space_counter++;
-        }
-        else if (space_counter == 2)
             strncat(PIDs[PIDs_id], &answer1[i], 1);
+            if (answer1[i + 1] == ' ')
+                isPIDFound = 1;
+        }
 
         if (answer1[i] == '\n')
         {
-            space_counter = 0;
+            isPIDFound = 0;
             PIDs_id++;
         }
     }
 
+    char output_line[2048] = "";
     char output[2048] = "";
 
     for (int i = 0; i < PIDs_amount; i++)
     {
 
         char line[2048] = "";
+
         FILE *fp;
-        char cmd[2048] = "ps -eo time ";
+        char cmd[2048] = "ps -eo ppid ";
         strcat(cmd, PIDs[i]);
         strcat(cmd, " | tail +2");
 
@@ -118,10 +120,24 @@ int main()
         }
 
         fgets(line, 2048, fp);
-        strcat(output, line);
+        line[strlen(line) - 1] = '\0';
+
+        FILE *fp2;
+        char cmd2[2048] = "ps -eo comm ";
+        strcat(cmd2, line);
+        strcat(cmd2, " | tail +2");
+
+        if ((fp2 = popen(cmd2, "r")) == NULL)
+        {
+            fprintf(stderr, "\nCLIENT 1:\nError while popen\n");
+            return 3;
+        }
+
+        fgets(output_line, 2048, fp2);
+        strcat(output, output_line);
     }
 
-    printf("%s", output);
+    printf("%s\n", output);
 
     // Разблокирование 2-ого клиента
     semop(fd_sem, &sem_unlock[1], 1);
