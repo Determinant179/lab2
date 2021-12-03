@@ -40,7 +40,7 @@ int main()
         strcat(output, line);
     }
 
-    printf("%s", output);
+    //printf("%s", output);
 
     // Получение семафоров
     int fd_sem = -1;

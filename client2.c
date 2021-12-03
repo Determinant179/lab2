@@ -43,29 +43,20 @@ int main()
         fprintf(stderr, "shared memory adding ERROR\n");
     }
 
-    // Ожидание сервера
-
     struct semid_ds semid_ds;
-    int rtrn, semid;
+    struct semid_ds *buf;
 
-    union semun
-    {
-        int val;
-        struct semid_ds *buf;
-        short array[25];
-
-    } arg;
+    int rtrn;
 
     // Инициализация указателя на структуру данных
-    arg.buf = &semid_ds;
+    buf = &semid_ds;
 
     rtrn = semctl(fd_sem, 0, GETPID);
     char output[2048];
     strcpy(output, "Last operation was performed at ");
 
-    time(&arg.buf->sem_otime);
-    strcat(output, ctime(&arg.buf->sem_otime));
-
+    time(&buf->sem_otime);
+    strcat(output, ctime(&buf->sem_otime));
 
     strcpy(addr, output);
 
