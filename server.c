@@ -31,16 +31,16 @@ struct sembuf
 int main()
 {
 
-    int rtrn;
+    int sem_val;
 
     // Создание РОП
     int fd_shm = shmget(3, 2048, IPC_CREAT | IPC_EXCL | 0664);
     if (fd_shm == -1)
     {
-        fprintf(stderr, "\n<SERVER>\nError while ShM creation\n");
+        fprintf(stderr, "\n<SERVER>\nError while shared memory creation\n");
         return 1;
     }
-    printf("\n<SERVER>\nSnM was created\n");
+    printf("\n<SERVER>\nShared memory was created\n");
 
     // Создание семафоров
     int fd_sem = semget(4, 1, IPC_CREAT | IPC_EXCL | 0664);
@@ -55,22 +55,18 @@ int main()
     char *addr = shmat(fd_shm, 0, 0);
     if (addr == (char *)-1)
     {
-        fprintf(stderr, "\n<SERVER>\nError while ShM adding\n");
+        fprintf(stderr, "\n<SERVER>\nError while shared memory adding\n");
     }
 
     // Разблокирование 1-ого клиента
-    printf("sem -> 1\n");
     semop(fd_sem, &sem_unlock[0], 1);
-    rtrn = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", rtrn);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Unlock client 1}\n", sem_val);
 
     // Ожидание 1-ого клиента
-    printf("sem -> -2\n");
     semop(fd_sem, &sem_wait[0], 1);
-    rtrn = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", rtrn);
-
-    printf("\n<SERVER>\nWaiting message from client 1...\n");
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Lock server, wait client 1...}\n", sem_val);
 
     char answer1[2048];
     strcpy(answer1, addr);
@@ -121,7 +117,7 @@ int main()
 
         if ((fp = popen(cmd, "r")) == NULL)
         {
-            fprintf(stderr, "\nCLIENT 1:\nError while popen\n");
+            fprintf(stderr, "\n<SERVER>\nError while popen\n");
             return 3;
         }
 
@@ -135,7 +131,7 @@ int main()
 
         if ((fp2 = popen(cmd2, "r")) == NULL)
         {
-            fprintf(stderr, "\nCLIENT 1:\nError while popen\n");
+            fprintf(stderr, "\n<SERVER>\nError while popen\n");
             return 3;
         }
 
@@ -143,36 +139,29 @@ int main()
         strcat(output, output_line);
     }
 
-    // ------------------------------------------------------------
+    // ----------------------------------------------------------------------------------
 
     strcpy(addr, output);
-    // shmdt(addr);
-    printf("sem -> 3\n");
+
     semop(fd_sem, &sem_unlock[1], 1);
-    rtrn = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", rtrn);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Unlock client 1}\n", sem_val);
 
-    printf("sem -> -4\n");
     semop(fd_sem, &sem_wait[1], 1);
-    rtrn = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", rtrn);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Lock server, wait client 1...}\n", sem_val);
 
-    // ------------------------------------------------------------
-
-    // Добавление РОП
-    // char *addr2 = shmat(fd_shm, 0, 0);
-    // if (addr2 == (char *)-1)
-    // {
-    //     fprintf(stderr, "\n<CLIENT 1>\nError while ShM adding\n");
-    // }
+    // ----------------------------------------------------------------------------------
 
     // Разблокирование 2-ого клиента
-    printf("sem -> 5\n");
-    semop(fd_sem, &sem_unlock[3], 1);
+    semop(fd_sem, &sem_unlock[2], 1);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Unlock client 2}\n", sem_val);
 
     // Ожидание 2-ого клиента
-    printf("sem -> -6\n");
     semop(fd_sem, &sem_wait[2], 1);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<SERVER>\nSem val = %d {Lock server, wait client 2...}\n", sem_val);
 
     char answer2[2048];
     strcpy(answer2, addr);

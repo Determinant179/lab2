@@ -18,7 +18,7 @@ struct sembuf sem_wait = {0, 6, 0};
 
 int main()
 {
-    int sem_num;
+    int sem_val;
 
     // Получение семафоров
     int fd_sem = -1;
@@ -27,10 +27,9 @@ int main()
         fd_sem = semget(4, 0, 0);
         sleep(1);
     }
-    printf("sem -> -5\n");
     semop(fd_sem, &sem_unlock, 1);
-    sem_num = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", sem_num);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<CLIENT 2>\nSem val = %d {Lock client 2, wait server...}\n", sem_val);
 
     // Получение РОП
     int fd_shm = -1;
@@ -62,13 +61,12 @@ int main()
     time(&buf->sem_otime);
     strcat(output, ctime(&buf->sem_otime));
 
+    printf("\n<CLIENT 2>\nCopy message to shared memory\n");
     strcpy(addr, output);
-
-    printf("sem -> \n");
+    
     semop(fd_sem, &sem_wait, 1);
-    sem_num = semctl(fd_sem, 0, GETVAL, 0);
-    printf("\nЗначение семафора = %d\n", sem_num);
-    shmdt(addr);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<CLIENT 2>\nSem val = %d {Unlock server}\n", sem_val);
 
     return 0;
 }
