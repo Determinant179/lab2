@@ -29,11 +29,22 @@
 // struct sembuf wait_second_client = {0, -4, 0};
 
 struct sembuf
+    sem_unlock_first = {0, 1, 0},
+    sem_unlock_second = {0, 3, 0},
+    sem_unlock_third = {0, 5, 0},
+
+    sem_wait_first = {0, -2, 0},
+    sem_wait_second = {0, -4, 0},
+    sem_wait_third = {0, -6, 0};
+
+struct sembuf
     sem_unlock[] = {{0, 1, 0}, {0, 3, 0}, {0, 5, 0}},
     sem_wait[] = {{0, -2, 0}, {0, -4, 0}, {0, -6, 0}};
 
 int main()
 {
+
+    int rtrn;
 
     // Создание РОП
     int fd_shm = shmget(3, 2048, IPC_CREAT | IPC_EXCL | 0664);
@@ -62,10 +73,16 @@ int main()
 
     // Разблокирование 1-ого клиента
     printf("sem -> 1\n");
-    semop(fd_sem, &sem_unlock[0], 1);
+    semop(fd_sem, &sem_unlock_first, 1);
+    rtrn = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", rtrn);
+
     // Ожидание 1-ого клиента
     printf("sem -> -2\n");
-    semop(fd_sem, &sem_wait[0], 1);
+    semop(fd_sem, &sem_wait_first, 1);
+    rtrn = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", rtrn);
+
     printf("\n<SERVER>\nWaiting message from client 1...\n");
 
     char answer1[2048];
@@ -141,43 +158,40 @@ int main()
 
     // ------------------------------------------------------------
 
-    // semop(fd_sem, &sem_unlock[1], 1);
-
-    // Добавление РОП
-    char *addr2 = shmat(fd_shm, 0, 0);
-    if (addr2 == (char *)-1)
-    {
-        fprintf(stderr, "\n<SERVER>\nError while ShM adding\n");
-    }
-
-    // printf("%s\n", output);
-
-    strcpy(addr2, output);
-    shmdt(addr2);
+    strcpy(addr, output);
+    // shmdt(addr);
     printf("sem -> 3\n");
-    semop(fd_sem, &sem_unlock[1], 1);
+    semop(fd_sem, &sem_unlock_second, 1);
+    rtrn = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", rtrn);
+
     printf("sem -> -4\n");
-    semop(fd_sem, &sem_wait[1], 1);
+    semop(fd_sem, &sem_wait_second, 1);
+    rtrn = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", rtrn);
 
     // ------------------------------------------------------------
 
+    // Добавление РОП
+    // char *addr2 = shmat(fd_shm, 0, 0);
+    // if (addr2 == (char *)-1)
+    // {
+    //     fprintf(stderr, "\n<CLIENT 1>\nError while ShM adding\n");
+    // }
 
     // Разблокирование 2-ого клиента
     printf("sem -> 5\n");
-    semop(fd_sem, &sem_unlock[2], 1);
+    semop(fd_sem, &sem_unlock_third, 1);
+
     // Ожидание 2-ого клиента
     printf("sem -> -6\n");
-    semop(fd_sem, &sem_wait[2], 1);
+    semop(fd_sem, &sem_wait_third, 1);
 
-    // // Ожидание 2-ого клиента
-    // printf("sem -> -6\n");
-    // semop(fd_sem, &sem_wait[2], 1);
+    char answer2[2048];
+    strcpy(answer2, addr);
+    printf("\n<SERVER>\nMessage from client 2:\n%s\n", answer2);
 
-    // char answer2[2048];
-    // strcpy(answer2, addr2);
-    // printf("\n<SERVER>\nMessage from client 2:\n%s\n", answer2);
-
-
+    shmdt(addr);
     shmctl(fd_shm, IPC_RMID, 0);
     semctl(fd_sem, 0, IPC_RMID);
 

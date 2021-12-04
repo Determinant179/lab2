@@ -18,6 +18,7 @@ struct sembuf sem_wait = {0, 6, 0};
 
 int main()
 {
+    int sem_num;
 
     // Получение семафоров
     int fd_sem = -1;
@@ -28,6 +29,8 @@ int main()
     }
     printf("sem -> -5\n");
     semop(fd_sem, &sem_unlock, 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
 
     // Получение РОП
     int fd_shm = -1;
@@ -63,6 +66,8 @@ int main()
 
     printf("sem -> \n");
     semop(fd_sem, &sem_wait, 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
     shmdt(addr);
 
     return 0;

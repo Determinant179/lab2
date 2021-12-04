@@ -22,6 +22,8 @@ struct sembuf
 int main()
 {
 
+    int sem_num;
+
     FILE *fp;
     if ((fp = popen("ps -eo pid,ni,time | awk '{if ( $2 > 10 ) print }' | tail +2", "r")) == NULL)
     {
@@ -56,6 +58,8 @@ int main()
 
     printf("sem -> -1\n");
     semop(fd_sem, &sem_unlock[0], 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
 
     // Получение РОП
     int fd_shm = -1;
@@ -78,6 +82,8 @@ int main()
 
     printf("sem -> 2\n");
     semop(fd_sem, &sem_wait[0], 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
     shmdt(addr);
 
     // --------------------------------------------------------
@@ -88,6 +94,8 @@ int main()
 
     printf("sem -> -3\n");
     semop(fd_sem, &sem_unlock[1], 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
 
     // Добавление РОП
     char *addr2 = shmat(fd_shm, 0, 0);
@@ -104,6 +112,8 @@ int main()
 
     printf("sem -> 4\n");
     semop(fd_sem, &sem_wait[1], 1);
+    sem_num = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\nЗначение семафора = %d\n", sem_num);
 
     shmctl(fd_shm, IPC_RMID, 0);
     semctl(fd_sem, 0, IPC_RMID);
