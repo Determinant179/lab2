@@ -13,11 +13,12 @@
     семафорами набора.
 */
 
-struct sembuf waiting = {0, -3, 0};
-struct sembuf notify = {0, 4, 0};
+struct sembuf sem_unlock = {0, -5, 0};
+struct sembuf sem_wait = {0, 6, 0};
 
 int main()
 {
+    int sem_val;
 
     // Получение семафоров
     int fd_sem = -1;
@@ -26,7 +27,9 @@ int main()
         fd_sem = semget(4, 0, 0);
         sleep(1);
     }
-    semop(fd_sem, &waiting, 1);
+    semop(fd_sem, &sem_unlock, 1);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<CLIENT 2>\nSem val = %d {Lock client 2, wait server...}\n", sem_val);
 
     // Получение РОП
     int fd_shm = -1;
@@ -40,7 +43,7 @@ int main()
     char *addr = shmat(fd_shm, 0, 0);
     if (addr == (char *)-1)
     {
-        fprintf(stderr, "shared memory adding ERROR\n");
+        fprintf(stderr, "\n<CLIENT 2>\nError while shared memory adding\n");
     }
 
     struct semid_ds semid_ds;
@@ -58,10 +61,12 @@ int main()
     time(&buf->sem_otime);
     strcat(output, ctime(&buf->sem_otime));
 
+    printf("\n<CLIENT 2>\nCopy message to shared memory\n");
     strcpy(addr, output);
-
-    semop(fd_sem, &notify, 1);
-    shmdt(addr);
+    
+    semop(fd_sem, &sem_wait, 1);
+    sem_val = semctl(fd_sem, 0, GETVAL, 0);
+    printf("\n<CLIENT 2>\nSem val = %d {Unlock server}\n", sem_val);
 
     return 0;
 }
