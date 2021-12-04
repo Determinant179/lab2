@@ -13,8 +13,8 @@
     семафорами набора.
 */
 
-struct sembuf waiting = {0, -5, 0};
-struct sembuf notify = {0, 6, 0};
+struct sembuf sem_unlock = {0, -5, 0};
+struct sembuf sem_wait = {0, 6, 0};
 
 int main()
 {
@@ -26,7 +26,8 @@ int main()
         fd_sem = semget(4, 0, 0);
         sleep(1);
     }
-    semop(fd_sem, &waiting, 1);
+    printf("sem -> -5\n");
+    semop(fd_sem, &sem_unlock, 1);
 
     // Получение РОП
     int fd_shm = -1;
@@ -40,7 +41,7 @@ int main()
     char *addr = shmat(fd_shm, 0, 0);
     if (addr == (char *)-1)
     {
-        fprintf(stderr, "\nCLIENT 2:\nError while shared memory adding\n");
+        fprintf(stderr, "\n<CLIENT 2>\nError while shared memory adding\n");
     }
 
     struct semid_ds semid_ds;
@@ -60,7 +61,8 @@ int main()
 
     strcpy(addr, output);
 
-    semop(fd_sem, &notify, 1);
+    printf("sem -> \n");
+    semop(fd_sem, &sem_wait, 1);
     shmdt(addr);
 
     return 0;
